@@ -51,6 +51,11 @@ function createAuth(db: Db, client: MongoClient) {
           defaultValue: false,
           input: false,
         },
+        phone: {
+          type: "string",
+          required: false,
+          input: true,
+        },
       },
     },
   });

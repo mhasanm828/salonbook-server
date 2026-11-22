@@ -8,6 +8,7 @@ import serviceRoutes from "./routes/services.js";
 import appointmentRoutes from "./routes/appointments.js";
 import adminRoutes from "./routes/admin.js";
 import paymentRoutes from "./routes/payments.js";
+import profileRoutes from "./routes/profile.js";
 import { stripeWebhookHandler } from "./routes/webhook.js";
 
 dotenv.config();
@@ -56,6 +57,7 @@ app.use("/api/services", serviceRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/profile", profileRoutes);
 
 async function start() {
   await connectDB();
