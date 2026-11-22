@@ -7,6 +7,8 @@ import { getAuth } from "./lib/auth.js";
 import serviceRoutes from "./routes/services.js";
 import appointmentRoutes from "./routes/appointments.js";
 import adminRoutes from "./routes/admin.js";
+import paymentRoutes from "./routes/payments.js";
+import { stripeWebhookHandler } from "./routes/webhook.js";
 
 dotenv.config();
 
@@ -32,6 +34,14 @@ app.all("/api/auth/*splat", async (req, res) => {
   return toNodeHandler(auth)(req, res);
 });
 
+// Stripe webhook needs the raw body for signature verification,
+// so it is mounted before express.json()
+app.post(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" }),
+  stripeWebhookHandler
+);
+
 app.use(express.json());
 
 app.get("/", (_req, res) => {
@@ -45,6 +55,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/services", serviceRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/payments", paymentRoutes);
 
 async function start() {
   await connectDB();
