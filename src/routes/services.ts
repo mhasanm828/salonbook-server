@@ -126,4 +126,121 @@ router.post("/", ...requireAdmin, async (req: Request, res: Response) => {
   }
 });
 
+// PATCH /api/services/:id - admin updates a service
+router.patch("/:id", ...requireAdmin, async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400).json({ message: "Invalid service ID." });
+    return;
+  }
+  if (!dbReady(res)) return;
+  try {
+    const updates: Record<string, unknown> = {};
+    const { serviceName, category, description, price, duration, image, status } =
+      req.body ?? {};
+
+    if (serviceName !== undefined) updates.serviceName = serviceName;
+    if (description !== undefined) updates.description = description;
+    if (image !== undefined) updates.image = image;
+    if (category !== undefined) {
+      if (!(SERVICE_CATEGORIES as readonly string[]).includes(category)) {
+        res.status(400).json({ message: "Invalid service category." });
+        return;
+      }
+      updates.category = category;
+    }
+    if (price !== undefined) {
+      const priceNumber = Number(price);
+      if (!Number.isFinite(priceNumber) || priceNumber <= 0) {
+        res.status(400).json({ message: "Price must be a positive number." });
+        return;
+      }
+      updates.price = priceNumber;
+    }
+    if (duration !== undefined) {
+      const durationNumber = Number(duration);
+      if (!Number.isFinite(durationNumber) || durationNumber <= 0) {
+        res.status(400).json({ message: "Duration must be a positive number." });
+        return;
+      }
+      updates.duration = durationNumber;
+    }
+    if (status !== undefined) {
+      if (status !== "active" && status !== "inactive") {
+        res.status(400).json({ message: "Status must be active or inactive." });
+        return;
+      }
+      updates.status = status;
+    }
+
+    const service = await Service.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    }).lean();
+    if (!service) {
+      res.status(404).json({ message: "Service not found." });
+      return;
+    }
+    res.json({ service });
+  } catch (error) {
+    console.error("Update service failed:", error);
+    res.status(500).json({ message: "Failed to update service." });
+  }
+});
+
+// PATCH /api/services/:id/status - admin activates/deactivates a service
+router.patch(
+  "/:id/status",
+  ...requireAdmin,
+  async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ message: "Invalid service ID." });
+      return;
+    }
+    if (!dbReady(res)) return;
+    try {
+      const { status } = req.body ?? {};
+      if (status !== "active" && status !== "inactive") {
+        res.status(400).json({ message: "Status must be active or inactive." });
+        return;
+      }
+      const service = await Service.findByIdAndUpdate(
+        id,
+        { status },
+        { new: true }
+      ).lean();
+      if (!service) {
+        res.status(404).json({ message: "Service not found." });
+        return;
+      }
+      res.json({ service });
+    } catch (error) {
+      console.error("Update service status failed:", error);
+      res.status(500).json({ message: "Failed to update service status." });
+    }
+  }
+);
+
+// DELETE /api/services/:id - admin deletes a service
+router.delete("/:id", ...requireAdmin, async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400).json({ message: "Invalid service ID." });
+    return;
+  }
+  if (!dbReady(res)) return;
+  try {
+    const service = await Service.findByIdAndDelete(id).lean();
+    if (!service) {
+      res.status(404).json({ message: "Service not found." });
+      return;
+    }
+    res.json({ message: "Service deleted successfully." });
+  } catch (error) {
+    console.error("Delete service failed:", error);
+    res.status(500).json({ message: "Failed to delete service." });
+  }
+});
+
 export default router;
