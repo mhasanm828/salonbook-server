@@ -5,6 +5,7 @@ import { toNodeHandler } from "better-auth/node";
 import { connectDB } from "./config/db.js";
 import { getAuth } from "./lib/auth.js";
 import serviceRoutes from "./routes/services.js";
+import appointmentRoutes from "./routes/appointments.js";
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.use("/api/services", serviceRoutes);
+app.use("/api/appointments", appointmentRoutes);
 
 async function start() {
   await connectDB();
