@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { connectDB } from "./config/db.js";
 
 dotenv.config();
 
@@ -23,8 +24,16 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", service: "salonbook-server" });
 });
 
-app.listen(port, () => {
-  console.log(`SalonBook server listening on port ${port}`);
+async function start() {
+  await connectDB();
+  app.listen(port, () => {
+    console.log(`SalonBook server listening on port ${port}`);
+  });
+}
+
+start().catch((error) => {
+  console.error("Failed to start server:", error);
+  process.exit(1);
 });
 
 export default app;
