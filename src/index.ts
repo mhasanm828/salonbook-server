@@ -1,7 +1,9 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { toNodeHandler } from "better-auth/node";
 import { connectDB } from "./config/db.js";
+import { getAuth } from "./lib/auth.js";
 
 dotenv.config();
 
@@ -14,6 +16,19 @@ app.use(
     credentials: true,
   })
 );
+
+// Better Auth handler must be mounted before express.json()
+app.all("/api/auth/*splat", async (req, res) => {
+  const auth = await getAuth();
+  if (!auth) {
+    res.status(503).json({
+      message: "Authentication is not configured yet (MONGODB_URI missing).",
+    });
+    return;
+  }
+  return toNodeHandler(auth)(req, res);
+});
+
 app.use(express.json());
 
 app.get("/", (_req, res) => {
