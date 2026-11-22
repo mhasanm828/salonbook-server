@@ -1,1 +1,1 @@
-{"$schema":"https://openapi.vercel.sh/vercel.json","functions":{"api/index.ts":{"maxDuration":30}},"rewrites":[{"destination":"/api/index.ts","source":"/(.*)"}]}
+{"$schema":"https://openapi.vercel.sh/vercel.json","buildCommand":null,"functions":{"api/index.ts":{"maxDuration":30}},"rewrites":[{"destination":"/api/index.ts","source":"/(.*)"}]}
