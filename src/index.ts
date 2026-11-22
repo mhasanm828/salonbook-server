@@ -45,6 +45,18 @@ app.post(
 
 app.use(express.json());
 
+// In serverless deployments there is no long-running start() call,
+// so make sure Mongoose is connected before API routes run.
+// connectDB() is idempotent and a no-op when already connected.
+app.use(async (_req, _res, next) => {
+  try {
+    await connectDB();
+  } catch {
+    // API route guards respond with 503 while the DB is unavailable.
+  }
+  next();
+});
+
 app.get("/", (_req, res) => {
   res.json({ message: "SalonBook server is running" });
 });
@@ -66,9 +78,13 @@ async function start() {
   });
 }
 
-start().catch((error) => {
-  console.error("Failed to start server:", error);
-  process.exit(1);
-});
+// On Vercel the app is served as a serverless function (see api/index.ts),
+// so only listen when running as a regular Node server.
+if (!process.env.VERCEL) {
+  start().catch((error) => {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  });
+}
 
 export default app;

@@ -17,11 +17,23 @@ import { MongoClient, type Db } from "mongodb";
 function createAuth(db: Db, client: MongoClient) {
   const googleClientId = process.env.GOOGLE_CLIENT_ID;
   const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const baseURL = process.env.BETTER_AUTH_URL || "http://localhost:5000";
+  // Client and server live on different origins in production, so the
+  // session cookie must allow cross-site requests (SameSite=None +
+  // Secure) whenever the auth URL is HTTPS.
+  const isHttps = baseURL.startsWith("https://");
 
   return betterAuth({
     database: mongodbAdapter(db, { client }),
     secret: process.env.BETTER_AUTH_SECRET,
-    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:5000",
+    baseURL,
+    ...(isHttps
+      ? {
+          advanced: {
+            defaultCookieAttributes: { sameSite: "none" as const, secure: true },
+          },
+        }
+      : {}),
     trustedOrigins: [process.env.CLIENT_URL || "http://localhost:3000"],
     emailAndPassword: {
       enabled: true,
