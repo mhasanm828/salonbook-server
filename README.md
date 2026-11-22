@@ -36,7 +36,7 @@ cp .env.example .env
 
 ```bash
 npm run dev     # development (watch mode)
-npm run build   # compile TypeScript
+npm run build:tsc   # compile TypeScript
 npm start       # run compiled server
 ```
 
